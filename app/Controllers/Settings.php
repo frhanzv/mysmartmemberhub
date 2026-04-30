@@ -14,7 +14,11 @@ class Settings extends BaseController
         foreach ($rows as $r) {
             $grouped[$r['group_name'] ?: 'general'][] = $r;
         }
-        return view('settings/index', compact('grouped'));
+
+        $dropdownGrouped = (new \App\Models\DropdownOptionModel())->allGrouped();
+        $dropdownCategories = (new \App\Models\DropdownOptionModel())->categories();
+
+        return view('settings/index', compact('grouped', 'dropdownGrouped', 'dropdownCategories'));
     }
 
     public function update()
