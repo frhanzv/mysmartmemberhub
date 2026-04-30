@@ -12,6 +12,11 @@
         <?= csrf_field() ?><button class="btn btn-sm btn-outline-danger">Reject</button>
       </form>
     <?php endif; ?>
+    <?php if ($p['status'] === 'confirmed' && can('payment.approve')): ?>
+      <form method="post" class="d-inline" action="<?= site_url('payments/' . $p['id'] . '/reverse') ?>" onsubmit="return confirm('Reverse this payment? If the related invoice has a validated e-Invoice, a Refund Note will be auto-issued to LHDN.')">
+        <?= csrf_field() ?><button class="btn btn-sm btn-outline-warning"><i class="bi bi-arrow-counterclockwise me-1"></i>Reverse / Refund</button>
+      </form>
+    <?php endif; ?>
   </div>
 </div>
 

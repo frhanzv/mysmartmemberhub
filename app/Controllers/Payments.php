@@ -167,6 +167,38 @@ class Payments extends BaseController
         return redirect()->back()->with('success', 'Payment rejected.');
     }
 
+    /** Reverse a confirmed payment. If the related invoice has a validated
+     *  e-Invoice, automatically issue a Refund Note to LHDN. */
+    public function reverse(int $id)
+    {
+        if (! can('payment.approve')) {
+            return $this->response->setStatusCode(403)->setBody('Forbidden');
+        }
+        $reason = trim((string) $this->request->getPost('reason')) ?: 'Refund';
+        $payments = new PaymentModel();
+        $p = $payments->find($id);
+        if (! $p || $p['status'] !== 'confirmed') {
+            return redirect()->back()->with('error', 'Only confirmed payments can be reversed.');
+        }
+        $payments->update($id, ['status' => 'reversed', 'approved_at' => date('Y-m-d H:i:s')]);
+
+        $messages = ['Payment reversed.'];
+        if ($p['invoice_id']) {
+            (new InvoiceModel())->update($p['invoice_id'], ['status' => 'issued']);
+            $inv = (new InvoiceModel())->find($p['invoice_id']);
+            if ($inv && ! empty($inv['einvoice_uuid']) && ($inv['einvoice_status'] ?? '') === 'valid') {
+                try {
+                    (new \App\Libraries\Einvoice\EInvoiceService())
+                        ->submitRefund($p['invoice_id'], (float) $p['amount'], current_user_id());
+                    $messages[] = 'Refund Note issued to LHDN.';
+                } catch (\Throwable $e) {
+                    $messages[] = 'Refund Note submission failed: ' . $e->getMessage();
+                }
+            }
+        }
+        return redirect()->back()->with('success', implode(' ', $messages));
+    }
+
     public function delete(int $id)
     {
         if (! can('payment.delete')) {

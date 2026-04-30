@@ -12,6 +12,9 @@ class InvoiceModel extends BaseModel
         'invoice_no', 'member_id', 'plan_id', 'amount', 'tax_percent',
         'tax_amount', 'total', 'status', 'issued_at', 'due_at',
         'pdf_path', 'notes', 'created_by',
+        'einvoice_status', 'einvoice_uuid', 'einvoice_long_id',
+        'einvoice_submission_uid', 'einvoice_validated_at',
+        'einvoice_cancellable_until',
     ];
 
     public function searchPaginated(array $filters, int $perPage = 20)

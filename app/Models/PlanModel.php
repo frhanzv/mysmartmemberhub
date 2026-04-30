@@ -10,6 +10,7 @@ class PlanModel extends BaseModel
 
     protected $allowedFields = [
         'code', 'name', 'price', 'duration_months', 'description', 'is_active',
+        'classification_code', 'tax_type', 'tax_rate', 'unit_code',
     ];
 
     public function active(): array

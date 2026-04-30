@@ -3,9 +3,12 @@
 namespace App\Controllers;
 
 use App\Libraries\AutoNumber;
+use App\Libraries\Einvoice\EInvoiceService;
+use App\Libraries\Einvoice\MyInvoisException;
 use App\Libraries\ExcelExporter;
 use App\Libraries\PdfGenerator;
 use App\Libraries\SettingsService;
+use App\Models\EinvoiceDocumentModel;
 use App\Models\InvoiceModel;
 use App\Models\MemberModel;
 use App\Models\PlanModel;
@@ -31,7 +34,59 @@ class Invoices extends BaseController
         if (! $i) {
             return redirect()->to('invoices')->with('error', 'Not found.');
         }
-        return view('invoices/show', ['i' => $i]);
+        $einvoiceDoc = (new EinvoiceDocumentModel())->latestForInvoice($id);
+        $einvoicePublicUrl = (new EInvoiceService())->publicUrl($i);
+        return view('invoices/show', [
+            'i'                => $i,
+            'einvoiceDoc'      => $einvoiceDoc,
+            'einvoicePublicUrl'=> $einvoicePublicUrl,
+        ]);
+    }
+
+    public function einvoiceSubmit(int $id)
+    {
+        if (! can('invoice.email') && ! can('invoice.generate')) {
+            return $this->response->setStatusCode(403)->setBody('Forbidden');
+        }
+        try {
+            (new EInvoiceService())->submitInvoice($id, current_user_id());
+            return redirect()->to('invoices/' . $id)->with('success', 'e-Invoice submitted to MyInvois.');
+        } catch (MyInvoisException $e) {
+            return redirect()->to('invoices/' . $id)->with('error', 'MyInvois rejected: ' . $e->getMessage());
+        } catch (\Throwable $e) {
+            log_message('error', 'einvoice submit failed for invoice {id}: {msg}', ['id' => $id, 'msg' => $e->getMessage()]);
+            return redirect()->to('invoices/' . $id)->with('error', 'e-Invoice submission failed: ' . $e->getMessage());
+        }
+    }
+
+    public function einvoiceCancel(int $id)
+    {
+        if (! can('invoice.email') && ! can('invoice.generate')) {
+            return $this->response->setStatusCode(403)->setBody('Forbidden');
+        }
+        $reason = trim((string) $this->request->getPost('reason'));
+        if ($reason === '') {
+            return redirect()->to('invoices/' . $id)->with('error', 'Cancellation reason is required.');
+        }
+        try {
+            (new EInvoiceService())->cancelInvoice($id, $reason, current_user_id());
+            return redirect()->to('invoices/' . $id)->with('success', 'e-Invoice cancelled.');
+        } catch (\Throwable $e) {
+            return redirect()->to('invoices/' . $id)->with('error', 'Cancel failed: ' . $e->getMessage());
+        }
+    }
+
+    public function einvoiceRefresh(int $id)
+    {
+        if (! can('invoice.email') && ! can('invoice.generate')) {
+            return $this->response->setStatusCode(403)->setBody('Forbidden');
+        }
+        try {
+            (new EInvoiceService())->refreshStatus($id);
+            return redirect()->to('invoices/' . $id)->with('success', 'e-Invoice status refreshed.');
+        } catch (\Throwable $e) {
+            return redirect()->to('invoices/' . $id)->with('error', 'Refresh failed: ' . $e->getMessage());
+        }
     }
 
     public function generateForMember(int $memberId)
@@ -75,7 +130,9 @@ class Invoices extends BaseController
             return redirect()->to('invoices')->with('error', 'Not found.');
         }
         $settings = SettingsService::all();
-        $bin = PdfGenerator::fromView('pdf/invoice', compact('i', 'settings'));
+        $einvoice = (new EInvoiceService())->publicUrl($i);
+        $qrDataUri = $einvoice ? \App\Libraries\Einvoice\QrRenderer::dataUri($einvoice) : null;
+        $bin = PdfGenerator::fromView('pdf/invoice', compact('i', 'settings', 'einvoice', 'qrDataUri'));
         return $this->response->setHeader('Content-Type', 'application/pdf')
             ->setHeader('Content-Disposition', 'inline; filename="' . $i['invoice_no'] . '.pdf"')
             ->setBody($bin);

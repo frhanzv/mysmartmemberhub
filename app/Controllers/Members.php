@@ -80,7 +80,7 @@ class Members extends BaseController
         $joined = $this->request->getPost('joined_date');
         $expiry = date('Y-m-d', strtotime("$joined +" . (int) $plan['duration_months'] . ' months'));
 
-        $data = [
+        $data = array_merge([
             'membership_id' => AutoNumber::memberId(),
             'name'          => $this->request->getPost('name'),
             'ic_no'         => $this->request->getPost('ic_no'),
@@ -93,7 +93,7 @@ class Members extends BaseController
             'status'        => 'active',
             'notes'         => $this->request->getPost('notes'),
             'created_by'    => current_user_id(),
-        ];
+        ], $this->einvoiceFields());
 
         $photo = $this->request->getFile('photo');
         if ($photo && $photo->isValid() && ! $photo->hasMoved()) {
@@ -150,7 +150,7 @@ class Members extends BaseController
             return redirect()->to('members')->with('error', 'Member not found.');
         }
 
-        $data = [
+        $data = array_merge([
             'name'        => $this->request->getPost('name'),
             'ic_no'       => $this->request->getPost('ic_no'),
             'email'       => $this->request->getPost('email'),
@@ -161,7 +161,7 @@ class Members extends BaseController
             'expiry_date' => $this->request->getPost('expiry_date'),
             'status'      => $this->request->getPost('status'),
             'notes'       => $this->request->getPost('notes'),
-        ];
+        ], $this->einvoiceFields());
 
         $photo = $this->request->getFile('photo');
         if ($photo && $photo->isValid() && ! $photo->hasMoved()) {
@@ -278,5 +278,20 @@ class Members extends BaseController
     private function fail403()
     {
         return $this->response->setStatusCode(403)->setBody('Forbidden');
+    }
+
+    /** Pull LHDN buyer-identity fields off the request, dropping empty entries so
+     *  we don't overwrite previously-saved values during edits. */
+    private function einvoiceFields(): array
+    {
+        $fields = ['tin','brn_or_nric','registration_type','sst_no','address_line1','address_line2','city','postcode','state_code','country_code'];
+        $out = [];
+        foreach ($fields as $f) {
+            $v = $this->request->getPost($f);
+            if ($v !== null && $v !== '') {
+                $out[$f] = $v;
+            }
+        }
+        return $out;
     }
 }
