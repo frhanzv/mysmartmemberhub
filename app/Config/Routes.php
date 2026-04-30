@@ -48,7 +48,7 @@ $routes->group('', ['filter' => 'auth'], static function ($routes) {
     });
 
     // ---------- Payments ----------
-    $routes->group('payments', ['filter' => 'permission:payment.view,payment.create'], static function ($r) {
+    $routes->group('payments', ['filter' => ['module:payments', 'permission:payment.view,payment.create']], static function ($r) {
         $r->get('/',                  'Payments::index');
         $r->get('export',             'Payments::export');
         $r->get('create',             'Payments::create');
@@ -61,7 +61,7 @@ $routes->group('', ['filter' => 'auth'], static function ($routes) {
     });
 
     // ---------- Invoices ----------
-    $routes->group('invoices', ['filter' => 'permission:invoice.view'], static function ($r) {
+    $routes->group('invoices', ['filter' => ['module:invoices', 'permission:invoice.view']], static function ($r) {
         $r->get('/',                  'Invoices::index');
         $r->get('export',             'Invoices::export');
         $r->get('(:num)',             'Invoices::show/$1');
@@ -74,7 +74,7 @@ $routes->group('', ['filter' => 'auth'], static function ($routes) {
     });
 
     // ---------- Receipts ----------
-    $routes->group('receipts', ['filter' => 'permission:receipt.view'], static function ($r) {
+    $routes->group('receipts', ['filter' => ['module:receipts', 'permission:receipt.view']], static function ($r) {
         $r->get('/',                  'Receipts::index');
         $r->get('export',             'Receipts::export');
         $r->get('(:num)',             'Receipts::show/$1');
@@ -82,7 +82,7 @@ $routes->group('', ['filter' => 'auth'], static function ($routes) {
     });
 
     // ---------- Reports ----------
-    $routes->group('reports', ['filter' => 'permission:report.view'], static function ($r) {
+    $routes->group('reports', ['filter' => ['module:reports', 'permission:report.view']], static function ($r) {
         $r->get('/',                       'Reports::index');
         $r->get('export/monthly',          'Reports::exportMonthly');
         $r->get('export/outstanding',      'Reports::exportOutstanding');
@@ -120,11 +120,13 @@ $routes->group('', ['filter' => 'auth'], static function ($routes) {
     });
 
     // ---------- Audit log ----------
-    $routes->group('audit-log', ['filter' => 'permission:audit.view'], static function ($r) {
+    $routes->group('audit-log', ['filter' => ['module:audit_log', 'permission:audit.view']], static function ($r) {
         $r->get('/',                  'AuditLog::index');
     });
 
     // ---------- Notifications ----------
-    $routes->get('notifications',                 'Notifications::index');
-    $routes->post('notifications/mark-all-read',  'Notifications::markAllRead');
+    $routes->group('notifications', ['filter' => 'module:notifications'], static function ($r) {
+        $r->get('/',              'Notifications::index');
+        $r->post('mark-all-read', 'Notifications::markAllRead');
+    });
 });

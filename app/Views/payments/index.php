@@ -4,7 +4,7 @@
 <div class="d-flex justify-content-between align-items-center mb-3">
   <h4 class="mb-0">Payments</h4>
   <div>
-    <?php if (can('report.export')): ?>
+    <?php if (can('report.export') && module_enabled('exports')): ?>
       <a class="btn btn-outline-secondary btn-sm" href="<?= site_url('payments/export') ?>"><i class="bi bi-download me-1"></i>Export</a>
     <?php endif; ?>
     <?php if (can('payment.create')): ?>
@@ -20,7 +20,7 @@
     <div class="col-md-3"><label class="form-label small">Status</label>
       <select class="form-select form-select-sm" name="status">
         <option value="">All</option>
-        <?php foreach (['pending','confirmed','rejected'] as $s): ?>
+        <?php foreach (['pending','confirmed','rejected','reversed'] as $s): ?>
         <option value="<?= $s ?>" <?= ($filters['status'] ?? '') === $s ? 'selected' : '' ?>><?= ucfirst($s) ?></option>
         <?php endforeach; ?>
       </select></div>

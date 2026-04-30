@@ -45,6 +45,9 @@ class Invoices extends BaseController
 
     public function einvoiceSubmit(int $id)
     {
+        if (! module_enabled('einvoice')) {
+            return module_disabled_response('einvoice');
+        }
         if (! can('invoice.email') && ! can('invoice.generate')) {
             return $this->response->setStatusCode(403)->setBody('Forbidden');
         }
@@ -61,6 +64,9 @@ class Invoices extends BaseController
 
     public function einvoiceCancel(int $id)
     {
+        if (! module_enabled('einvoice')) {
+            return module_disabled_response('einvoice');
+        }
         if (! can('invoice.email') && ! can('invoice.generate')) {
             return $this->response->setStatusCode(403)->setBody('Forbidden');
         }
@@ -78,6 +84,9 @@ class Invoices extends BaseController
 
     public function einvoiceRefresh(int $id)
     {
+        if (! module_enabled('einvoice')) {
+            return module_disabled_response('einvoice');
+        }
         if (! can('invoice.email') && ! can('invoice.generate')) {
             return $this->response->setStatusCode(403)->setBody('Forbidden');
         }
@@ -148,7 +157,9 @@ class Invoices extends BaseController
             return redirect()->back()->with('error', 'Member has no email on file.');
         }
         $settings = SettingsService::all();
-        $bin = PdfGenerator::fromView('pdf/invoice', compact('i', 'settings'));
+        $einvoice = (new EInvoiceService())->publicUrl($i);
+        $qrDataUri = $einvoice ? \App\Libraries\Einvoice\QrRenderer::dataUri($einvoice) : null;
+        $bin = PdfGenerator::fromView('pdf/invoice', compact('i', 'settings', 'einvoice', 'qrDataUri'));
 
         $email = service('email');
         $email->setTo($i['email']);
@@ -165,6 +176,7 @@ class Invoices extends BaseController
 
     public function export()
     {
+        if (! module_enabled('exports')) { return module_disabled_response('exports'); }
         if (! can('report.export')) {
             return $this->response->setStatusCode(403)->setBody('Forbidden');
         }

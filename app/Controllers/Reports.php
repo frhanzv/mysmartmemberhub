@@ -35,6 +35,7 @@ class Reports extends BaseController
 
     public function exportMonthly()
     {
+        if (! module_enabled('exports')) { return module_disabled_response('exports'); }
         if (! can('report.export')) {
             return $this->response->setStatusCode(403)->setBody('Forbidden');
         }
@@ -58,6 +59,7 @@ class Reports extends BaseController
 
     public function exportOutstanding()
     {
+        if (! module_enabled('exports')) { return module_disabled_response('exports'); }
         if (! can('report.export')) {
             return $this->response->setStatusCode(403)->setBody('Forbidden');
         }

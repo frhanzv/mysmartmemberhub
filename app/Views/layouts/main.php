@@ -38,16 +38,16 @@ $roleSlug = current_role_slug();
       <?php endif; ?>
 
       <h6>Finance</h6>
-      <?php if (can('payment.view')): ?>
+      <?php if (can('payment.view') && module_enabled('payments')): ?>
         <a href="<?= site_url('payments') ?>" class="<?= url_is('payments*') ? 'active' : '' ?>"><i class="bi bi-cash-coin me-2"></i>Payments</a>
       <?php endif; ?>
-      <?php if (can('invoice.view')): ?>
+      <?php if (can('invoice.view') && module_enabled('invoices')): ?>
         <a href="<?= site_url('invoices') ?>" class="<?= url_is('invoices*') ? 'active' : '' ?>"><i class="bi bi-file-earmark-text me-2"></i>Invoices</a>
       <?php endif; ?>
-      <?php if (can('receipt.view')): ?>
+      <?php if (can('receipt.view') && module_enabled('receipts')): ?>
         <a href="<?= site_url('receipts') ?>" class="<?= url_is('receipts*') ? 'active' : '' ?>"><i class="bi bi-receipt me-2"></i>Receipts</a>
       <?php endif; ?>
-      <?php if (can('report.view')): ?>
+      <?php if (can('report.view') && module_enabled('reports')): ?>
         <a href="<?= site_url('reports') ?>" class="<?= url_is('reports*') ? 'active' : '' ?>"><i class="bi bi-graph-up me-2"></i>Reports</a>
       <?php endif; ?>
 
@@ -58,7 +58,7 @@ $roleSlug = current_role_slug();
       <?php if (can('role.manage')): ?>
         <a href="<?= site_url('roles') ?>" class="<?= url_is('roles*') ? 'active' : '' ?>"><i class="bi bi-shield-lock me-2"></i>Roles</a>
       <?php endif; ?>
-      <?php if (can('audit.view')): ?>
+      <?php if (can('audit.view') && module_enabled('audit_log')): ?>
         <a href="<?= site_url('audit-log') ?>" class="<?= url_is('audit-log*') ? 'active' : '' ?>"><i class="bi bi-clipboard-data me-2"></i>Audit Log</a>
       <?php endif; ?>
       <?php if (can('setting.manage')): ?>
@@ -74,7 +74,9 @@ $roleSlug = current_role_slug();
         <input class="form-control form-control-sm" type="search" name="q" placeholder="Search member by name / IC / email / ID" style="min-width:340px" value="<?= esc($_GET['q'] ?? '') ?>">
       </form>
       <div class="d-flex align-items-center gap-3">
-        <a href="<?= site_url('notifications') ?>" class="text-secondary"><i class="bi bi-bell fs-5"></i></a>
+        <?php if (module_enabled('notifications')): ?>
+          <a href="<?= site_url('notifications') ?>" class="text-secondary"><i class="bi bi-bell fs-5"></i></a>
+        <?php endif; ?>
         <div class="dropdown">
           <a class="dropdown-toggle text-decoration-none text-dark" data-bs-toggle="dropdown" href="#">
             <i class="bi bi-person-circle me-1"></i>

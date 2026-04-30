@@ -7,7 +7,7 @@
     <?php if (can('member.import')): ?>
       <a class="btn btn-outline-secondary btn-sm" href="<?= site_url('members/import') ?>"><i class="bi bi-upload me-1"></i>Import</a>
     <?php endif; ?>
-    <?php if (can('report.export')): ?>
+    <?php if (can('report.export') && module_enabled('exports')): ?>
       <a class="btn btn-outline-secondary btn-sm" href="<?= site_url('members/export') ?>"><i class="bi bi-download me-1"></i>Export</a>
     <?php endif; ?>
     <?php if (can('member.create')): ?>

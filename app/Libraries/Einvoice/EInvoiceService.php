@@ -39,11 +39,24 @@ class EInvoiceService
      */
     public function submitInvoice(int $invoiceId, ?int $userId = null): array
     {
-        return $this->submitDocumentFor($invoiceId, 'invoice', (float) $this->loadInvoice($invoiceId)['total'], null, null, $userId);
+        $inv = $this->loadInvoice($invoiceId);
+        return $this->submitDocumentFor(
+            $invoiceId,
+            'invoice',
+            (float) $inv['amount'],
+            (float) $inv['tax_amount'],
+            (float) $inv['tax_percent'],
+            null,
+            null,
+            $userId
+        );
     }
 
     /**
      * Issue a Refund Note that references a previously validated e-Invoice.
+     * The provided $amount is the gross (tax-inclusive) refund amount and is
+     * split into net + tax using the original invoice's tax_percent so the UBL
+     * document reports figures consistent with the source invoice.
      */
     public function submitRefund(int $invoiceId, float $amount, ?int $userId = null): array
     {
@@ -51,7 +64,23 @@ class EInvoiceService
         if (empty($inv['einvoice_uuid'])) {
             throw new \RuntimeException('Cannot issue refund note: original e-Invoice has not been validated.');
         }
-        return $this->submitDocumentFor($invoiceId, 'refund_note', $amount, $inv['einvoice_uuid'], $inv['invoice_no'], $userId);
+        $taxPercent = (float) $inv['tax_percent'];
+        if ($taxPercent > 0) {
+            $taxAmount = round($amount * $taxPercent / (100 + $taxPercent), 2);
+        } else {
+            $taxAmount = 0.0;
+        }
+        $netAmount = round($amount - $taxAmount, 2);
+        return $this->submitDocumentFor(
+            $invoiceId,
+            'refund_note',
+            $netAmount,
+            $taxAmount,
+            $taxPercent,
+            $inv['einvoice_uuid'],
+            $inv['invoice_no'],
+            $userId
+        );
     }
 
     /**
@@ -131,8 +160,16 @@ class EInvoiceService
 
     // --------------- internals ---------------
 
-    private function submitDocumentFor(int $invoiceId, string $type, float $amount, ?string $origUuid, ?string $origNo, ?int $userId): array
-    {
+    private function submitDocumentFor(
+        int $invoiceId,
+        string $type,
+        float $netAmount,
+        float $taxAmount,
+        float $taxPercent,
+        ?string $origUuid,
+        ?string $origNo,
+        ?int $userId
+    ): array {
         $inv    = $this->loadInvoice($invoiceId);
         $member = $this->members->find($inv['member_id']);
         if (! $member) {
@@ -143,7 +180,7 @@ class EInvoiceService
             throw new \RuntimeException("Plan #{$inv['plan_id']} not found for invoice #$invoiceId");
         }
 
-        $ubl = UblDocumentBuilder::build($type, $inv, $member, $plan, $amount, $origUuid, $origNo);
+        $ubl = UblDocumentBuilder::build($type, $inv, $member, $plan, $netAmount, $taxAmount, $taxPercent, $origUuid, $origNo);
         $code = $type === 'invoice' ? $inv['invoice_no'] : ($inv['invoice_no'] . '-' . strtoupper(substr($type, 0, 2)));
 
         $now    = date('Y-m-d H:i:s');
@@ -176,6 +213,13 @@ class EInvoiceService
         $accepted = $resp['accepted'][0] ?? null;
         $rejected = $resp['rejected'][0] ?? null;
 
+        // Only the original Invoice document drives the source invoice row's
+        // LHDN status fields. Credit / debit / refund notes are tracked in
+        // einvoice_documents only — they must NEVER overwrite the source
+        // invoice's IRBM UUID / status, or we lose the link to the validated
+        // original document on the LHDN portal.
+        $isPrimary = ($type === 'invoice');
+
         if ($rejected) {
             $this->docs->update($docId, [
                 'status'           => 'invalid',
@@ -183,7 +227,9 @@ class EInvoiceService
                 'response_payload' => $this->jsonEncode($resp['raw']),
                 'error_payload'    => $this->jsonEncode($rejected),
             ]);
-            $this->invoices->update($invoiceId, ['einvoice_status' => 'invalid']);
+            if ($isPrimary) {
+                $this->invoices->update($invoiceId, ['einvoice_status' => 'invalid']);
+            }
             throw new MyInvoisException(
                 'MyInvois rejected document: ' . ($rejected['error']['error'] ?? 'unknown'),
                 422,
@@ -218,7 +264,9 @@ class EInvoiceService
         }
 
         $this->docs->update($docId, $update);
-        $this->invoices->update($invoiceId, $invUpdate);
+        if ($isPrimary) {
+            $this->invoices->update($invoiceId, $invUpdate);
+        }
 
         return [
             'document' => $this->docs->find($docId),
