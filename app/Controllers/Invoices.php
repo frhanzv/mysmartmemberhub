@@ -157,7 +157,9 @@ class Invoices extends BaseController
             return redirect()->back()->with('error', 'Member has no email on file.');
         }
         $settings = SettingsService::all();
-        $bin = PdfGenerator::fromView('pdf/invoice', compact('i', 'settings'));
+        $einvoice = (new EInvoiceService())->publicUrl($i);
+        $qrDataUri = $einvoice ? \App\Libraries\Einvoice\QrRenderer::dataUri($einvoice) : null;
+        $bin = PdfGenerator::fromView('pdf/invoice', compact('i', 'settings', 'einvoice', 'qrDataUri'));
 
         $email = service('email');
         $email->setTo($i['email']);

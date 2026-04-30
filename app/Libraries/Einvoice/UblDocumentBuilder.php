@@ -29,11 +29,13 @@ class UblDocumentBuilder
     ];
 
     /**
-     * @param string     $documentType   one of self::TYPE_CODES keys
-     * @param array      $invoice        invoices row (with member loaded under ['member'])
-     * @param array      $member         members row
-     * @param array      $plan           membership_plans row
-     * @param float      $amount         positive total amount in MYR (the document level amount)
+     * @param string      $documentType  one of self::TYPE_CODES keys
+     * @param array       $invoice       invoices row
+     * @param array       $member        members row
+     * @param array       $plan          membership_plans row
+     * @param float       $netAmount     tax-exclusive (taxable) amount in MYR
+     * @param float       $taxAmount     tax amount in MYR
+     * @param float       $taxPercent    tax rate in percent (e.g. 6.00)
      * @param string|null $originalUuid  IRBM UUID of original invoice — required for credit/debit/refund notes
      * @param string|null $originalNo    e-Invoice code/number of original invoice — required for credit/debit/refund notes
      */
@@ -42,7 +44,9 @@ class UblDocumentBuilder
         array $invoice,
         array $member,
         array $plan,
-        float $amount,
+        float $netAmount,
+        float $taxAmount,
+        float $taxPercent,
         ?string $originalUuid = null,
         ?string $originalNo   = null
     ): array {
@@ -57,8 +61,9 @@ class UblDocumentBuilder
 
         $supplier = self::supplierParty();
         $buyer    = self::buyerParty($member);
-        $line     = self::buildLine($plan, $amount);
-        $totals   = self::buildTotals($amount, (float) $plan['tax_rate'], $plan['tax_type'] ?? '06');
+        $taxType  = (string) ($plan['tax_type'] ?? '06');
+        $line     = self::buildLine($plan, $netAmount, $taxAmount, $taxPercent, $taxType);
+        $totals   = self::buildTotals($netAmount, $taxAmount, $taxPercent, $taxType);
 
         $invoiceObj = [
             'ID'                       => [['_' => $invoice['invoice_no']]],
@@ -183,12 +188,10 @@ class UblDocumentBuilder
         ];
     }
 
-    private static function buildLine(array $plan, float $amount): array
+    private static function buildLine(array $plan, float $netAmount, float $taxAmount, float $taxPercent, string $taxType): array
     {
-        $taxRate = (float) ($plan['tax_rate'] ?? 0);
-        $taxAmt  = round($amount * $taxRate / 100, 2);
-        $net     = round($amount - $taxAmt, 2);
-        $taxType = (string) ($plan['tax_type'] ?? '06');
+        $net    = round($netAmount, 2);
+        $taxAmt = round($taxAmount, 2);
 
         return [
             'ID'                  => [['_' => '1']],
@@ -199,7 +202,7 @@ class UblDocumentBuilder
                 'TaxSubtotal'      => [[
                     'TaxableAmount' => [['_' => $net, 'currencyID' => 'MYR']],
                     'TaxAmount'     => [['_' => $taxAmt, 'currencyID' => 'MYR']],
-                    'Percent'       => [['_' => $taxRate]],
+                    'Percent'       => [['_' => $taxPercent]],
                     'TaxCategory'   => [[
                         'ID'        => [['_' => $taxType]],
                         'TaxScheme' => [[
@@ -215,15 +218,16 @@ class UblDocumentBuilder
                 'Description' => [['_' => (string) ($plan['name'] ?? 'Membership')]],
                 'OriginCountry' => [['IdentificationCode' => [['_' => 'MYS']]]],
             ]],
-            'Price'             => [[ 'PriceAmount' => [['_' => $amount, 'currencyID' => 'MYR']] ]],
-            'ItemPriceExtension'=> [[ 'Amount'      => [['_' => $amount, 'currencyID' => 'MYR']] ]],
+            'Price'             => [[ 'PriceAmount' => [['_' => $net, 'currencyID' => 'MYR']] ]],
+            'ItemPriceExtension'=> [[ 'Amount'      => [['_' => $net, 'currencyID' => 'MYR']] ]],
         ];
     }
 
-    private static function buildTotals(float $amount, float $taxRate, string $taxType): array
+    private static function buildTotals(float $netAmount, float $taxAmount, float $taxPercent, string $taxType): array
     {
-        $taxAmt = round($amount * $taxRate / 100, 2);
-        $net    = round($amount - $taxAmt, 2);
+        $net    = round($netAmount, 2);
+        $taxAmt = round($taxAmount, 2);
+        $gross  = round($net + $taxAmt, 2);
 
         return [
             'taxTotal' => [
@@ -231,7 +235,7 @@ class UblDocumentBuilder
                 'TaxSubtotal' => [[
                     'TaxableAmount' => [['_' => $net,    'currencyID' => 'MYR']],
                     'TaxAmount'     => [['_' => $taxAmt, 'currencyID' => 'MYR']],
-                    'Percent'       => [['_' => $taxRate]],
+                    'Percent'       => [['_' => $taxPercent]],
                     'TaxCategory'   => [[
                         'ID'        => [['_' => $taxType]],
                         'TaxScheme' => [[
@@ -241,10 +245,10 @@ class UblDocumentBuilder
                 ]],
             ],
             'monetaryTotal' => [
-                'LineExtensionAmount' => [['_' => $net,    'currencyID' => 'MYR']],
-                'TaxExclusiveAmount'  => [['_' => $net,    'currencyID' => 'MYR']],
-                'TaxInclusiveAmount'  => [['_' => $amount, 'currencyID' => 'MYR']],
-                'PayableAmount'       => [['_' => $amount, 'currencyID' => 'MYR']],
+                'LineExtensionAmount' => [['_' => $net,   'currencyID' => 'MYR']],
+                'TaxExclusiveAmount'  => [['_' => $net,   'currencyID' => 'MYR']],
+                'TaxInclusiveAmount'  => [['_' => $gross, 'currencyID' => 'MYR']],
+                'PayableAmount'       => [['_' => $gross, 'currencyID' => 'MYR']],
             ],
         ];
     }

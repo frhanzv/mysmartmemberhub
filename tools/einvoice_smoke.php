@@ -75,7 +75,7 @@ $invoiceId = $invoices->insert([
 ], true);
 
 // Sanity: builder produces JSON
-$ubl = UblDocumentBuilder::build('invoice', $invoices->find($invoiceId), $members->find($memberId), $plan, (float) $plan['price']);
+$ubl = UblDocumentBuilder::build('invoice', $invoices->find($invoiceId), $members->find($memberId), $plan, (float) $plan['price'], 0.0, 0.0);
 $json = json_encode($ubl, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 assert(is_string($json) && $json !== false, 'UBL JSON must encode');
 $decoded = json_decode($json, true);

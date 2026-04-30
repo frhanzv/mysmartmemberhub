@@ -20,7 +20,7 @@
     <div class="col-md-3"><label class="form-label small">Status</label>
       <select class="form-select form-select-sm" name="status">
         <option value="">All</option>
-        <?php foreach (['pending','confirmed','rejected'] as $s): ?>
+        <?php foreach (['pending','confirmed','rejected','reversed'] as $s): ?>
         <option value="<?= $s ?>" <?= ($filters['status'] ?? '') === $s ? 'selected' : '' ?>><?= ucfirst($s) ?></option>
         <?php endforeach; ?>
       </select></div>
