@@ -49,12 +49,16 @@ class Plans extends BaseController
             return redirect()->back()->withInput()->with('error', implode(' ', $this->validator->getErrors()));
         }
         $data = [
-            'code'            => $this->request->getPost('code'),
-            'name'            => $this->request->getPost('name'),
-            'price'           => $this->request->getPost('price'),
-            'duration_months' => (int) $this->request->getPost('duration_months'),
-            'description'     => $this->request->getPost('description'),
-            'is_active'       => $this->request->getPost('is_active') ? 1 : 0,
+            'code'                => $this->request->getPost('code'),
+            'name'                => $this->request->getPost('name'),
+            'price'               => $this->request->getPost('price'),
+            'duration_months'     => (int) $this->request->getPost('duration_months'),
+            'description'         => $this->request->getPost('description'),
+            'is_active'           => $this->request->getPost('is_active') ? 1 : 0,
+            'classification_code' => $this->request->getPost('classification_code') ?: '022',
+            'tax_type'            => $this->request->getPost('tax_type') ?: '06',
+            'tax_rate'            => (float) $this->request->getPost('tax_rate'),
+            'unit_code'           => $this->request->getPost('unit_code') ?: 'MON',
         ];
         $plans = new PlanModel();
         if ($id) {

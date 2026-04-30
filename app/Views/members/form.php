@@ -49,6 +49,33 @@
       <input type="file" class="form-control" name="photo" accept="image/*"></div>
     <div class="col-12"><label class="form-label">Notes</label>
       <textarea class="form-control" rows="2" name="notes"><?= esc(old('notes', $member['notes'] ?? '')) ?></textarea></div>
+
+    <div class="col-12 mt-2"><h6 class="text-muted mb-0">LHDN e-Invoice (optional, required if buyer requests an individual e-Invoice)</h6></div>
+    <div class="col-md-3"><label class="form-label">Registration type</label>
+      <select class="form-select" name="registration_type">
+        <?php foreach (['Individual','Company','Government','Foreign'] as $rt): ?>
+          <option value="<?= $rt ?>" <?= ($member['registration_type'] ?? 'Individual') === $rt ? 'selected' : '' ?>><?= $rt ?></option>
+        <?php endforeach; ?>
+      </select></div>
+    <div class="col-md-3"><label class="form-label">TIN</label>
+      <input class="form-control" name="tin" value="<?= esc(old('tin', $member['tin'] ?? '')) ?>" placeholder="e.g. C12345678900"></div>
+    <div class="col-md-3"><label class="form-label">BRN / NRIC</label>
+      <input class="form-control" name="brn_or_nric" value="<?= esc(old('brn_or_nric', $member['brn_or_nric'] ?? '')) ?>"></div>
+    <div class="col-md-3"><label class="form-label">SST no.</label>
+      <input class="form-control" name="sst_no" value="<?= esc(old('sst_no', $member['sst_no'] ?? '')) ?>"></div>
+
+    <div class="col-md-6"><label class="form-label">Address line 1</label>
+      <input class="form-control" name="address_line1" value="<?= esc(old('address_line1', $member['address_line1'] ?? '')) ?>"></div>
+    <div class="col-md-6"><label class="form-label">Address line 2</label>
+      <input class="form-control" name="address_line2" value="<?= esc(old('address_line2', $member['address_line2'] ?? '')) ?>"></div>
+    <div class="col-md-3"><label class="form-label">City</label>
+      <input class="form-control" name="city" value="<?= esc(old('city', $member['city'] ?? '')) ?>"></div>
+    <div class="col-md-2"><label class="form-label">Postcode</label>
+      <input class="form-control" name="postcode" value="<?= esc(old('postcode', $member['postcode'] ?? '')) ?>"></div>
+    <div class="col-md-3"><label class="form-label">State (LHDN code)</label>
+      <input class="form-control" name="state_code" maxlength="2" value="<?= esc(old('state_code', $member['state_code'] ?? '14')) ?>" placeholder="e.g. 14 = WP KL"></div>
+    <div class="col-md-2"><label class="form-label">Country</label>
+      <input class="form-control" name="country_code" maxlength="3" value="<?= esc(old('country_code', $member['country_code'] ?? 'MYS')) ?>"></div>
   </div>
   <div class="mt-3">
     <button class="btn btn-primary"><?= $isEdit ? 'Update' : 'Register' ?></button>

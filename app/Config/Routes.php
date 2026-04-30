@@ -56,6 +56,7 @@ $routes->group('', ['filter' => 'auth'], static function ($routes) {
         $r->get('(:num)',             'Payments::show/$1');
         $r->post('(:num)/approve',    'Payments::approve/$1');
         $r->post('(:num)/reject',     'Payments::reject/$1');
+        $r->post('(:num)/reverse',    'Payments::reverse/$1');
         $r->post('(:num)/delete',     'Payments::delete/$1');
     });
 
@@ -66,6 +67,9 @@ $routes->group('', ['filter' => 'auth'], static function ($routes) {
         $r->get('(:num)',             'Invoices::show/$1');
         $r->get('(:num)/pdf',         'Invoices::pdf/$1');
         $r->post('(:num)/email',      'Invoices::email/$1');
+        $r->post('(:num)/einvoice/submit',  'Invoices::einvoiceSubmit/$1');
+        $r->post('(:num)/einvoice/cancel',  'Invoices::einvoiceCancel/$1');
+        $r->post('(:num)/einvoice/refresh', 'Invoices::einvoiceRefresh/$1');
         $r->post('generate-for-member/(:num)', 'Invoices::generateForMember/$1');
     });
 

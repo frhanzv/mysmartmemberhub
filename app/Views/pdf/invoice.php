@@ -29,6 +29,16 @@
     <div><strong>Issued:</strong> <?= fdate($i['issued_at']) ?></div>
     <div><strong>Due:</strong> <?= fdate($i['due_at']) ?></div>
     <div><strong>Status:</strong> <?= esc(strtoupper($i['status'])) ?></div>
+    <?php if (! empty($i['einvoice_uuid']) && ($i['einvoice_status'] ?? '') === 'valid'): ?>
+      <div style="margin-top:6px"><strong>e-Invoice:</strong> VALIDATED</div>
+      <div style="font-size:10px"><strong>UUID:</strong> <?= esc($i['einvoice_uuid']) ?></div>
+      <?php if (! empty($i['einvoice_validated_at'])): ?>
+        <div style="font-size:10px"><strong>Validated:</strong> <?= esc($i['einvoice_validated_at']) ?></div>
+      <?php endif; ?>
+      <?php if (! empty($qrDataUri)): ?>
+        <div style="margin-top:6px"><img src="<?= $qrDataUri ?>" alt="e-Invoice QR" style="width:110px;height:110px"></div>
+      <?php endif; ?>
+    <?php endif; ?>
   </td>
 </tr></table>
 

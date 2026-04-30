@@ -12,6 +12,9 @@ class MemberModel extends BaseModel
         'membership_id', 'name', 'ic_no', 'email', 'phone', 'address',
         'plan_id', 'joined_date', 'expiry_date', 'status', 'photo_path',
         'notes', 'created_by',
+        'tin', 'brn_or_nric', 'registration_type', 'sst_no',
+        'address_line1', 'address_line2', 'city', 'postcode',
+        'state_code', 'country_code',
     ];
 
     /**

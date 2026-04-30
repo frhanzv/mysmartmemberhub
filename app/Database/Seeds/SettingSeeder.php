@@ -24,6 +24,25 @@ class SettingSeeder extends Seeder
             ['counter.member',            '0',                              'int',     'counter'],
             ['counter.invoice.' . date('Y'),  '0',                          'int',     'counter'],
             ['counter.receipt.' . date('Y'),  '0',                          'int',     'counter'],
+
+            // ----- LHDN MyInvois supplier identity -----
+            ['einvoice.enabled',          '0',                              'bool',    'einvoice'],
+            ['einvoice.environment',      'sandbox',                        'string',  'einvoice'], // sandbox|prod|stub
+            ['einvoice.supplier.tin',     'EI00000000010',                  'string',  'einvoice'], // sandbox test TIN
+            ['einvoice.supplier.brn',     '202001012345',                   'string',  'einvoice'],
+            ['einvoice.supplier.brn_scheme','BRN',                          'string',  'einvoice'], // BRN|NRIC|PASSPORT|ARMY
+            ['einvoice.supplier.sst_no',  '',                               'string',  'einvoice'], // optional
+            ['einvoice.supplier.msic',    '94991',                          'string',  'einvoice'], // membership orgs
+            ['einvoice.supplier.activity','Activities of membership organisations n.e.c.', 'string', 'einvoice'],
+            ['einvoice.supplier.address1','No. 1, Jalan Contoh',            'string',  'einvoice'],
+            ['einvoice.supplier.address2','',                               'string',  'einvoice'],
+            ['einvoice.supplier.city',    'Kuala Lumpur',                   'string',  'einvoice'],
+            ['einvoice.supplier.postcode','50000',                          'string',  'einvoice'],
+            ['einvoice.supplier.state',   '14',                             'string',  'einvoice'], // 14 = WP Kuala Lumpur
+            ['einvoice.supplier.country', 'MYS',                            'string',  'einvoice'],
+            ['einvoice.supplier.email',   'admin@mysmartmemberhub.test',    'string',  'einvoice'],
+            ['einvoice.supplier.phone',   '+60312345678',                   'string',  'einvoice'],
+            ['einvoice.portal.base',      'https://preprod.myinvois.hasil.gov.my', 'string', 'einvoice'],
         ];
 
         $rows = [];
