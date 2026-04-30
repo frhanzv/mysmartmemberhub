@@ -40,6 +40,7 @@
   </dl>
 </div>
 
+<?php if (module_enabled('einvoice')): ?>
 <div class="card mt-3 shadow-sm">
   <div class="card-header d-flex justify-content-between align-items-center">
     <strong>LHDN MyInvois e-Invoice</strong>
@@ -123,4 +124,5 @@
     </div>
   <?php endif; ?>
 </div>
+<?php endif; /* module_enabled('einvoice') */ ?>
 <?= $this->endSection() ?>
