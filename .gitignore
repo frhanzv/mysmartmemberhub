@@ -124,3 +124,7 @@ _modules/*
 
 /results/
 /phpunit*.xml
+
+
+# CodeIgniter session files (when session.savePath is misresolved)
+public/null/

@@ -3,7 +3,7 @@
 <?= $this->section('content') ?>
 <div class="d-flex justify-content-between align-items-center mb-3">
   <h4 class="mb-0">Receipts</h4>
-  <?php if (can('report.export')): ?>
+  <?php if (can('report.export') && module_enabled('exports')): ?>
     <a class="btn btn-outline-secondary btn-sm" href="<?= site_url('receipts/export') ?>"><i class="bi bi-download me-1"></i>Export</a>
   <?php endif; ?>
 </div>

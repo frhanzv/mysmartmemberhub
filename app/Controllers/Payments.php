@@ -125,33 +125,40 @@ class Payments extends BaseController
             'approved_at' => date('Y-m-d H:i:s'),
         ]);
 
-        // generate receipt
-        $receipts = new ReceiptModel();
-        $rcptNo   = AutoNumber::receiptNo();
-        $rcptId   = $receipts->insert([
-            'receipt_no' => $rcptNo,
-            'payment_id' => $id,
-            'invoice_id' => $p['invoice_id'],
-            'member_id'  => $p['member_id'],
-            'amount'     => $p['amount'],
-            'issued_at'  => date('Y-m-d H:i:s'),
-            'created_by' => current_user_id(),
-        ], true);
+        helper('module');
+        $rcptNo = null;
 
-        // PDF
-        $pdfPath = $this->renderReceiptPdf((int) $rcptId);
-        $receipts->update($rcptId, ['pdf_path' => $pdfPath]);
-        $payments->update($id, ['receipt_id' => $rcptId]);
+        // generate receipt (only if Receipts module is on)
+        if (module_enabled('receipts')) {
+            $receipts = new ReceiptModel();
+            $rcptNo   = AutoNumber::receiptNo();
+            $rcptId   = $receipts->insert([
+                'receipt_no' => $rcptNo,
+                'payment_id' => $id,
+                'invoice_id' => $p['invoice_id'],
+                'member_id'  => $p['member_id'],
+                'amount'     => $p['amount'],
+                'issued_at'  => date('Y-m-d H:i:s'),
+                'created_by' => current_user_id(),
+            ], true);
 
-        // Mark invoice paid if exists
-        if ($p['invoice_id']) {
+            $pdfPath = $this->renderReceiptPdf((int) $rcptId);
+            $receipts->update($rcptId, ['pdf_path' => $pdfPath]);
+            $payments->update($id, ['receipt_id' => $rcptId]);
+
+            Notifier::notify((int) $p['created_by'], 'receipt.ready',
+                'Receipt issued', "Receipt $rcptNo is ready.", site_url('receipts/' . $rcptId));
+        }
+
+        // Mark invoice paid if Invoices module is on
+        if ($p['invoice_id'] && module_enabled('invoices')) {
             (new InvoiceModel())->update($p['invoice_id'], ['status' => 'paid']);
         }
 
-        Notifier::notify((int) $p['created_by'], 'receipt.ready',
-            'Receipt issued', "Receipt $rcptNo is ready.", site_url('receipts/' . $rcptId));
-
-        return redirect()->to('payments/' . $id)->with('success', "Payment confirmed. Receipt $rcptNo issued.");
+        $msg = $rcptNo
+            ? "Payment confirmed. Receipt $rcptNo issued."
+            : 'Payment confirmed. (Receipts module disabled — no receipt generated.)';
+        return redirect()->to('payments/' . $id)->with('success', $msg);
     }
 
     public function reject(int $id)
@@ -210,6 +217,7 @@ class Payments extends BaseController
 
     public function export()
     {
+        if (! module_enabled('exports')) { return module_disabled_response('exports'); }
         if (! can('report.export')) {
             return $this->response->setStatusCode(403)->setBody('Forbidden');
         }

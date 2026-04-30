@@ -43,6 +43,18 @@ class SettingSeeder extends Seeder
             ['einvoice.supplier.email',   'admin@mysmartmemberhub.test',    'string',  'einvoice'],
             ['einvoice.supplier.phone',   '+60312345678',                   'string',  'einvoice'],
             ['einvoice.portal.base',      'https://preprod.myinvois.hasil.gov.my', 'string', 'einvoice'],
+
+            // ----- Module enable/disable (Super Admin only) -----
+            // 'core' modules are always enabled (members, plans, dashboard, users, roles, settings).
+            // The keys below control optional modules + cross-cutting features.
+            ['module.payments.enabled',      '1', 'bool', 'module'],
+            ['module.invoices.enabled',      '1', 'bool', 'module'],
+            ['module.receipts.enabled',      '1', 'bool', 'module'],
+            ['module.reports.enabled',       '1', 'bool', 'module'],
+            ['module.einvoice.enabled',      '0', 'bool', 'module'], // LHDN MyInvois — off by default until creds wired
+            ['module.notifications.enabled', '1', 'bool', 'module'],
+            ['module.audit_log.enabled',     '1', 'bool', 'module'],
+            ['module.exports.enabled',       '1', 'bool', 'module'], // Excel/CSV/PDF export buttons
         ];
 
         $rows = [];

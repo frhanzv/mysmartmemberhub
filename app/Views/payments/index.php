@@ -4,7 +4,7 @@
 <div class="d-flex justify-content-between align-items-center mb-3">
   <h4 class="mb-0">Payments</h4>
   <div>
-    <?php if (can('report.export')): ?>
+    <?php if (can('report.export') && module_enabled('exports')): ?>
       <a class="btn btn-outline-secondary btn-sm" href="<?= site_url('payments/export') ?>"><i class="bi bi-download me-1"></i>Export</a>
     <?php endif; ?>
     <?php if (can('payment.create')): ?>
