@@ -83,11 +83,18 @@ class LhdnEinvoice extends Migration
         $f->addKey('status');
         $f->addForeignKey('created_by', 'users', 'id', '', 'SET NULL');
         $f->createTable('einvoice_documents');
+
+        // ---------------- payments: extend status enum to include 'reversed' ----------------
+        // Original enum is ('pending','confirmed','rejected'); the LHDN refund flow needs 'reversed'.
+        $this->db->query("ALTER TABLE payments MODIFY status ENUM('pending','confirmed','rejected','reversed') NOT NULL DEFAULT 'pending'");
     }
 
     public function down(): void
     {
         $f = $this->forge;
+        // Roll back any 'reversed' rows so the enum shrink is safe, then revert the enum.
+        $this->db->query("UPDATE payments SET status = 'rejected' WHERE status = 'reversed'");
+        $this->db->query("ALTER TABLE payments MODIFY status ENUM('pending','confirmed','rejected') NOT NULL DEFAULT 'pending'");
         $f->dropTable('einvoice_documents', true);
 
         foreach (['einvoice_status','einvoice_uuid','einvoice_long_id','einvoice_submission_uid','einvoice_validated_at','einvoice_cancellable_until'] as $col) {

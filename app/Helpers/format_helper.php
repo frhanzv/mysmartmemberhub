@@ -39,6 +39,7 @@ if (! function_exists('status_badge')) {
             'issued'    => 'info',
             'draft'     => 'secondary',
             'cancelled' => 'danger',
+            'reversed'  => 'warning',
             'disabled'  => 'secondary',
         ];
         $color = $map[$status] ?? 'secondary';
