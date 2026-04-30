@@ -50,7 +50,7 @@
     <div class="card shadow-sm">
       <div class="card-header bg-white"><strong>Exports</strong></div>
       <div class="list-group list-group-flush">
-        <?php if (can('report.export')): ?>
+        <?php if (can('report.export') && module_enabled('exports')): ?>
         <a class="list-group-item list-group-item-action" href="<?= site_url('reports/export/monthly?month=' . urlencode($month)) ?>"><i class="bi bi-file-earmark-spreadsheet me-2"></i>Monthly statement (<?= esc($month) ?>)</a>
         <a class="list-group-item list-group-item-action" href="<?= site_url('reports/export/outstanding') ?>"><i class="bi bi-file-earmark-spreadsheet me-2"></i>Outstanding invoices</a>
         <a class="list-group-item list-group-item-action" href="<?= site_url('members/export') ?>"><i class="bi bi-file-earmark-spreadsheet me-2"></i>All members</a>

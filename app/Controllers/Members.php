@@ -106,25 +106,31 @@ class Members extends BaseController
 
         $id = (new MemberModel())->insert($data, true);
 
-        // Auto-create issued invoice for the plan price
-        $tax     = (float) \App\Libraries\SettingsService::get('invoice.tax_percent', 0);
-        $taxAmt  = round(((float) $plan['price']) * $tax / 100, 2);
-        $total   = round(((float) $plan['price']) + $taxAmt, 2);
-        (new InvoiceModel())->insert([
-            'invoice_no'  => AutoNumber::invoiceNo(),
-            'member_id'   => $id,
-            'plan_id'     => $plan['id'],
-            'amount'      => $plan['price'],
-            'tax_percent' => $tax,
-            'tax_amount'  => $taxAmt,
-            'total'       => $total,
-            'status'      => 'issued',
-            'issued_at'   => date('Y-m-d'),
-            'due_at'      => date('Y-m-d', strtotime('+14 days')),
-            'created_by'  => current_user_id(),
-        ]);
+        // Auto-create issued invoice for the plan price (only if Invoices module is on)
+        helper('module');
+        $msg = 'Member registered.';
+        if (module_enabled('invoices')) {
+            $tax     = (float) \App\Libraries\SettingsService::get('invoice.tax_percent', 0);
+            $taxAmt  = round(((float) $plan['price']) * $tax / 100, 2);
+            $total   = round(((float) $plan['price']) + $taxAmt, 2);
+            (new InvoiceModel())->insert([
+                'invoice_no'  => AutoNumber::invoiceNo(),
+                'member_id'   => $id,
+                'plan_id'     => $plan['id'],
+                'amount'      => $plan['price'],
+                'tax_percent' => $tax,
+                'tax_amount'  => $taxAmt,
+                'total'       => $total,
+                'status'      => 'issued',
+                'issued_at'   => date('Y-m-d'),
+                'due_at'      => date('Y-m-d', strtotime('+14 days')),
+                'created_by'  => current_user_id(),
+            ]);
+        } else {
+            $msg .= ' (Invoices module disabled — no invoice generated.)';
+        }
 
-        return redirect()->to('members/' . $id)->with('success', 'Member registered.');
+        return redirect()->to('members/' . $id)->with('success', $msg);
     }
 
     public function edit(int $id)
@@ -262,6 +268,7 @@ class Members extends BaseController
 
     public function export()
     {
+        if (! module_enabled('exports')) { return module_disabled_response('exports'); }
         if (! can('report.export')) {
             return $this->fail403();
         }
