@@ -7,6 +7,14 @@ use CodeIgniter\Router\RouteCollection;
 // ---------------------------------------------------------------------
 // Public (no auth)
 // ---------------------------------------------------------------------
+// Landing page (public)
+$routes->get('landing', static function () {
+    if (session()->get('user_id')) {
+        return redirect()->to('/');
+    }
+    return view('landing');
+});
+
 $routes->get('login',                'Auth::loginForm');
 $routes->post('login',               'Auth::login');
 $routes->get('logout',               'Auth::logout');
