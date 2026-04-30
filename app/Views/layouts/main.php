@@ -62,7 +62,8 @@ $roleSlug = current_role_slug();
         <a href="<?= site_url('audit-log') ?>" class="<?= url_is('audit-log*') ? 'active' : '' ?>"><i class="bi bi-clipboard-data me-2"></i>Audit Log</a>
       <?php endif; ?>
       <?php if (can('setting.manage')): ?>
-        <a href="<?= site_url('settings') ?>" class="<?= url_is('settings*') ? 'active' : '' ?>"><i class="bi bi-gear me-2"></i>Settings</a>
+        <a href="<?= site_url('settings') ?>" class="<?= url_is('settings') ? 'active' : '' ?>"><i class="bi bi-gear me-2"></i>Settings</a>
+        <a href="<?= site_url('settings/dropdown-options') ?>" class="<?= url_is('settings/dropdown-options*') ? 'active' : '' ?>"><i class="bi bi-ui-checks me-2"></i>Dropdown Options</a>
       <?php endif; ?>
     </nav>
   </aside>

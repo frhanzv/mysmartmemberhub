@@ -47,6 +47,7 @@ mysmartmemberhub/
 │   │   ├── Users.php
 │   │   ├── Roles.php
 │   │   ├── Settings.php
+│   │   ├── DropdownOptions.php # CRUD dropdown option categories
 │   │   ├── AuditLog.php
 │   │   └── Notifications.php
 │   ├── Filters/
@@ -64,7 +65,8 @@ mysmartmemberhub/
 │   │   ├── ReceiptModel.php
 │   │   ├── SettingModel.php
 │   │   ├── AuditLogModel.php
-│   │   └── NotificationModel.php
+│   │   ├── NotificationModel.php
+│   │   └── DropdownOptionModel.php
 │   ├── Libraries/
 │   │   ├── AutoNumber.php
 │   │   ├── PdfGenerator.php
@@ -81,7 +83,8 @@ mysmartmemberhub/
 │   │       ├── RolePermissionSeeder.php
 │   │       ├── UserSeeder.php
 │   │       ├── PlanSeeder.php
-│   │       └── SettingSeeder.php
+│   │       ├── SettingSeeder.php
+│   │       └── DropdownOptionSeeder.php
 │   └── Views/
 │       ├── layouts/main.php           # Sidebar + topbar
 │       ├── auth/{login,forgot,reset}.php
@@ -95,6 +98,7 @@ mysmartmemberhub/
 │       ├── users/{index,form}.php
 │       ├── roles/{index,form}.php
 │       ├── settings/index.php
+│       ├── dropdown_options/{index,form}.php
 │       ├── audit/index.php
 │       ├── notifications/index.php
 │       ├── partials/{flash,pagination}.php

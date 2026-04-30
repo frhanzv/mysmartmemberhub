@@ -30,8 +30,8 @@
       <input type="date" class="form-control" name="payment_date" value="<?= date('Y-m-d') ?>" required></div>
     <div class="col-md-3"><label class="form-label">Method *</label>
       <select class="form-select" name="method" required>
-        <?php foreach (['cash','transfer','card','cheque','other'] as $m): ?>
-          <option value="<?= $m ?>"><?= ucfirst($m) ?></option>
+        <?php foreach (dropdown_options('payment_method') as $opt): ?>
+          <option value="<?= esc($opt['value']) ?>"><?= esc($opt['label']) ?></option>
         <?php endforeach; ?>
       </select></div>
     <div class="col-md-3"><label class="form-label">Reference no.</label>

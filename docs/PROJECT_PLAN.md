@@ -144,6 +144,19 @@ Key-value table editable from `/settings`:
 - `payment.instructions`
 - `system.session_timeout_minutes`
 
+### 3.12 Configurable Dropdown Options
+Database-driven dropdown management at `/settings/dropdown-options` (permission: `setting.manage`).
+Admins can CRUD options per category. Forms load options dynamically instead of hardcoding.
+
+Seeded categories:
+- `payment_method` — cash, transfer, card, cheque, online, other
+- `registration_type` — Individual, Company, Government, Foreign
+- `country` — 17 countries (MYS, SGP, IDN, …)
+- `state` — 17 Malaysian states with LHDN codes (01–17)
+- `tax_type` — LHDN tax types (01–06, E)
+
+New categories can be created on the fly from the UI.
+
 ---
 
 ## 4. URL Map
@@ -160,6 +173,7 @@ Key-value table editable from `/settings`:
 | `/reports`, `/reports/export/:type` | `report.*` |
 | `/users[/...]`, `/roles[/...]` | `user.manage` / `role.manage` |
 | `/settings` | `setting.manage` |
+| `/settings/dropdown-options[/...]` | `setting.manage` |
 | `/audit-log` | `audit.view` |
 | `/notifications` | authenticated |
 

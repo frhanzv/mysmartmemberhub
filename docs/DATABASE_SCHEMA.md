@@ -167,3 +167,20 @@ Composite PK `(role_id, permission_id)`.
 | mime | VARCHAR(80) | |
 | uploaded_by | INT FK users.id | |
 | created_at | DATETIME | |
+
+## `dropdown_options`
+| col | type | notes |
+| --- | --- | --- |
+| id | INT PK auto | |
+| category | VARCHAR(60) | e.g. `country`, `payment_method`, `state` |
+| label | VARCHAR(120) | Display text shown in form |
+| value | VARCHAR(80) | Stored value submitted by form |
+| sort_order | INT | Default 0, determines display order |
+| is_active | TINYINT(1) | Default 1, inactive options hidden from forms |
+| created_at | DATETIME | |
+| updated_at | DATETIME | |
+
+Index: `(category, is_active, sort_order)`.
+
+Seeded categories: `payment_method`, `registration_type`, `country`, `state`, `tax_type`.
+

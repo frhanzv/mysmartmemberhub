@@ -53,8 +53,8 @@
     <div class="col-12 mt-2"><h6 class="text-muted mb-0">LHDN e-Invoice (optional, required if buyer requests an individual e-Invoice)</h6></div>
     <div class="col-md-3"><label class="form-label">Registration type</label>
       <select class="form-select" name="registration_type">
-        <?php foreach (['Individual','Company','Government','Foreign'] as $rt): ?>
-          <option value="<?= $rt ?>" <?= ($member['registration_type'] ?? 'Individual') === $rt ? 'selected' : '' ?>><?= $rt ?></option>
+        <?php foreach (dropdown_options('registration_type') as $opt): ?>
+          <option value="<?= esc($opt['value']) ?>" <?= ($member['registration_type'] ?? 'Individual') === $opt['value'] ? 'selected' : '' ?>><?= esc($opt['label']) ?></option>
         <?php endforeach; ?>
       </select></div>
     <div class="col-md-3"><label class="form-label">TIN</label>
@@ -73,9 +73,17 @@
     <div class="col-md-2"><label class="form-label">Postcode</label>
       <input class="form-control" name="postcode" value="<?= esc(old('postcode', $member['postcode'] ?? '')) ?>"></div>
     <div class="col-md-3"><label class="form-label">State (LHDN code)</label>
-      <input class="form-control" name="state_code" maxlength="2" value="<?= esc(old('state_code', $member['state_code'] ?? '14')) ?>" placeholder="e.g. 14 = WP KL"></div>
-    <div class="col-md-2"><label class="form-label">Country</label>
-      <input class="form-control" name="country_code" maxlength="3" value="<?= esc(old('country_code', $member['country_code'] ?? 'MYS')) ?>"></div>
+      <select class="form-select" name="state_code">
+        <?php foreach (dropdown_options('state') as $opt): ?>
+          <option value="<?= esc($opt['value']) ?>" <?= ($member['state_code'] ?? '14') === $opt['value'] ? 'selected' : '' ?>><?= esc($opt['value'] . ' – ' . $opt['label']) ?></option>
+        <?php endforeach; ?>
+      </select></div>
+    <div class="col-md-4"><label class="form-label">Country</label>
+      <select class="form-select" name="country_code">
+        <?php foreach (dropdown_options('country') as $opt): ?>
+          <option value="<?= esc($opt['value']) ?>" <?= ($member['country_code'] ?? 'MYS') === $opt['value'] ? 'selected' : '' ?>><?= esc($opt['label'] . ' (' . $opt['value'] . ')') ?></option>
+        <?php endforeach; ?>
+      </select></div>
   </div>
   <div class="mt-3">
     <button class="btn btn-primary"><?= $isEdit ? 'Update' : 'Register' ?></button>

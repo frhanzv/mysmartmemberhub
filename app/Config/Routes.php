@@ -109,6 +109,14 @@ $routes->group('', ['filter' => 'auth'], static function ($routes) {
     $routes->group('settings', ['filter' => 'permission:setting.manage'], static function ($r) {
         $r->get('/',                  'Settings::index');
         $r->post('update',            'Settings::update');
+
+        // Dropdown options management
+        $r->get('dropdown-options',                 'DropdownOptions::index');
+        $r->get('dropdown-options/create',          'DropdownOptions::create');
+        $r->post('dropdown-options/store',          'DropdownOptions::store');
+        $r->get('dropdown-options/(:num)/edit',     'DropdownOptions::edit/$1');
+        $r->post('dropdown-options/(:num)/update',  'DropdownOptions::update/$1');
+        $r->post('dropdown-options/(:num)/delete',  'DropdownOptions::delete/$1');
     });
 
     // ---------- Audit log ----------

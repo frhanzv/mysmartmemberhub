@@ -1,7 +1,10 @@
 <?= $this->extend('layouts/main') ?>
 
 <?= $this->section('content') ?>
-<h4>System settings</h4>
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <h4 class="mb-0">System settings</h4>
+  <a href="<?= site_url('settings/dropdown-options') ?>" class="btn btn-outline-primary btn-sm"><i class="bi bi-ui-checks me-1"></i>Manage Dropdown Options</a>
+</div>
 <form method="post" enctype="multipart/form-data" action="<?= site_url('settings/update') ?>">
   <?= csrf_field() ?>
   <?php foreach ($grouped as $group => $items): ?>

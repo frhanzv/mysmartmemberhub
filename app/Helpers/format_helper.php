@@ -62,3 +62,20 @@ if (! function_exists('flash_alerts')) {
         return $out;
     }
 }
+
+if (! function_exists('dropdown_options')) {
+    /**
+     * Return active dropdown options for a category.
+     * Cached per-request so multiple calls don't re-query.
+     *
+     * @return array<int, array{label: string, value: string}>
+     */
+    function dropdown_options(string $category): array
+    {
+        static $cache = [];
+        if (! isset($cache[$category])) {
+            $cache[$category] = (new \App\Models\DropdownOptionModel())->byCategory($category);
+        }
+        return $cache[$category];
+    }
+}
