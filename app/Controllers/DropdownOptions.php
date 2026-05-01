@@ -45,13 +45,23 @@ class DropdownOptions extends BaseController
             $category = strtolower(preg_replace('/[^a-zA-Z0-9]+/', '_', $category));
         }
 
-        (new DropdownOptionModel())->insert([
-            'category'   => $category,
-            'label'      => $this->request->getPost('label'),
-            'value'      => $this->request->getPost('value'),
-            'sort_order' => (int) $this->request->getPost('sort_order'),
-            'is_active'  => $this->request->getPost('is_active') ? 1 : 0,
-        ]);
+        try {
+            (new DropdownOptionModel())->insert([
+                'category'   => $category,
+                'label'      => $this->request->getPost('label'),
+                'value'      => $this->request->getPost('value'),
+                'sort_order' => (int) $this->request->getPost('sort_order'),
+                'is_active'  => $this->request->getPost('is_active') ? 1 : 0,
+            ]);
+        } catch (\Throwable $e) {
+            if ($this->isDuplicateKey($e)) {
+                return redirect()->back()->withInput()->with(
+                    'error',
+                    'An option with this category and value already exists.'
+                );
+            }
+            throw $e;
+        }
 
         return redirect()->to('settings/dropdown-options')
             ->with('success', 'Option added.');
@@ -95,13 +105,23 @@ class DropdownOptions extends BaseController
             $category = strtolower(preg_replace('/[^a-zA-Z0-9]+/', '_', $category));
         }
 
-        $model->update($id, [
-            'category'   => $category,
-            'label'      => $this->request->getPost('label'),
-            'value'      => $this->request->getPost('value'),
-            'sort_order' => (int) $this->request->getPost('sort_order'),
-            'is_active'  => $this->request->getPost('is_active') ? 1 : 0,
-        ]);
+        try {
+            $model->update($id, [
+                'category'   => $category,
+                'label'      => $this->request->getPost('label'),
+                'value'      => $this->request->getPost('value'),
+                'sort_order' => (int) $this->request->getPost('sort_order'),
+                'is_active'  => $this->request->getPost('is_active') ? 1 : 0,
+            ]);
+        } catch (\Throwable $e) {
+            if ($this->isDuplicateKey($e)) {
+                return redirect()->back()->withInput()->with(
+                    'error',
+                    'An option with this category and value already exists.'
+                );
+            }
+            throw $e;
+        }
 
         return redirect()->to('settings/dropdown-options')
             ->with('success', 'Option updated.');
@@ -112,5 +132,23 @@ class DropdownOptions extends BaseController
         (new DropdownOptionModel())->delete($id);
         return redirect()->to('settings/dropdown-options')
             ->with('success', 'Option deleted.');
+    }
+
+    /**
+     * Detect a MySQL duplicate-key violation by SQLSTATE / driver code 1062.
+     * Works against both DatabaseException and the underlying PDOException
+     * that CI4 wraps when DBDebug is on.
+     */
+    private function isDuplicateKey(\Throwable $e): bool
+    {
+        for ($cur = $e; $cur !== null; $cur = $cur->getPrevious()) {
+            if ((int) $cur->getCode() === 1062) {
+                return true;
+            }
+            if (str_contains((string) $cur->getMessage(), 'Duplicate entry')) {
+                return true;
+            }
+        }
+        return false;
     }
 }
