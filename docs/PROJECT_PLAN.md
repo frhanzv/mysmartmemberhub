@@ -163,6 +163,7 @@ New categories can be created on the fly from the UI.
 
 | URL | Permission |
 | --- | --- |
+| `/landing` | public (marketing page) |
 | `/login`, `/logout`, `/forgot-password`, `/reset-password/:token` | public |
 | `/` (dashboard) | authenticated |
 | `/members[/...]` | `member.*` |

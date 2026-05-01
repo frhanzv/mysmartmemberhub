@@ -77,10 +77,10 @@ Composite PK `(role_id, permission_id)`.
 | invoice_id | INT FK invoices.id NULL | filled on auto-match |
 | amount | DECIMAL(12,2) | |
 | payment_date | DATE | |
-| method | ENUM('cash','transfer','card','cheque','other') | |
+| method | ENUM('cash','transfer','card','cheque','online','other') | |
 | reference_no | VARCHAR(120) NULL | |
 | proof_path | VARCHAR(255) NULL | uploaded file |
-| status | ENUM('pending','confirmed','rejected') | default 'pending' |
+| status | ENUM('pending','confirmed','rejected','reversed') | default 'pending' (`reversed` added by LHDN migration) |
 | notes | TEXT NULL | |
 | approved_by | INT FK users.id NULL | |
 | approved_at | DATETIME NULL | |
@@ -180,7 +180,7 @@ Composite PK `(role_id, permission_id)`.
 | created_at | DATETIME | |
 | updated_at | DATETIME | |
 
-Index: `(category, is_active, sort_order)`.
+Indexes: `(category, is_active, sort_order)` for fast `byCategory()` lookups, and `UNIQUE(category, value)` so the seeder is idempotent.
 
 Seeded categories: `payment_method`, `registration_type`, `country`, `state`, `tax_type`.
 

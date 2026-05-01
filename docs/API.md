@@ -13,13 +13,16 @@ This is the canonical reference for every HTTP route in the system. It covers:
 
 | Method | Path | Controller | Auth | Description |
 |---|---|---|---|---|
-| GET  | `/login`                  | `Auth::loginForm`     | public      | Render login form |
-| POST | `/login`                  | `Auth::login`         | public      | Body: `username`, `password`, CSRF. Sets session, redirects to `/`. |
+| GET  | `/landing`                | _closure_             | public      | Public marketing landing page. Logged-in users are redirected to `/`. |
+| GET  | `/login`                  | `Auth::loginForm`     | public      | Render split-panel login form. |
+| POST | `/login`                  | `Auth::login`         | public      | Body: `login` (email **or** username), `password`, CSRF. Sets session, redirects to `/`. |
 | GET  | `/logout`                 | `Auth::logout`        | logged-in   | Clears session. |
 | GET  | `/forgot-password`        | `Auth::forgotForm`    | public      | Render password-reset request form. |
 | POST | `/forgot-password`        | `Auth::forgot`        | public      | Body: `email`. Issues a `reset_token` and (in real deployments) emails a link. |
 | GET  | `/reset-password/:token`  | `Auth::resetForm/$1`  | public      | Render reset form. |
 | POST | `/reset-password/:token`  | `Auth::reset/$1`      | public      | Body: `password`, `password_confirm`. |
+
+**Unauthenticated requests** to any non-public route are redirected to `/landing` (not directly to `/login`); the landing page has a "Sign in" CTA that takes the visitor to `/login`.
 
 **Session keys** populated after login: `user_id`, `user_name`, `role_slug`, `role_name`, `permissions[]`. `permissions[]` is cached for the session lifetime; logout or role change clears it.
 
@@ -181,6 +184,46 @@ PDF contains `RECEIPT`/`INVOICE` heading, member block, line items, totals, and 
 | POST | `/roles/{id}/update`      | `role.manage` |
 | GET  | `/settings`               | `setting.manage` |
 | POST | `/settings/update`        | `setting.manage` |
+| GET  | `/settings/dropdown-options`              | `setting.manage` |
+| GET  | `/settings/dropdown-options/create`       | `setting.manage` |
+| POST | `/settings/dropdown-options/store`        | `setting.manage` |
+| GET  | `/settings/dropdown-options/{id}/edit`    | `setting.manage` |
+| POST | `/settings/dropdown-options/{id}/update`  | `setting.manage` |
+| POST | `/settings/dropdown-options/{id}/delete`  | `setting.manage` |
+
+### Dropdown options (configurable selects)
+
+Many forms (member registration, payment recording, plan setup) use the `dropdown_options` table so an admin can extend the choice lists without a code change. Categories are seeded by `DropdownOptionSeeder`:
+
+| Category | Used by | Seed values |
+|---|---|---|
+| `payment_method`     | `Payments::create` / `edit`             | Cash, Bank Transfer, Card, Cheque, Online, Other |
+| `registration_type`  | `Members::create` / `edit` (LHDN buyer) | Individual, Company, Government, Foreign |
+| `country`            | `Members` address fields                | 17 ISO-3 codes (MYS, SGP, IDN…) |
+| `state`              | `Members` address fields                | 17 LHDN Malaysian state codes (`01`…`17`) |
+| `tax_type`           | `Plans::create` / `edit` LHDN tax       | `01`–`05`, `06`, `E` |
+
+`DropdownOptions::store` and `update` accept a magic `category=__new__` value paired with `new_category=<free text>`; the controller normalises the string to `lowercase_with_underscores` before insert. Use `is_active=0` to soft-disable an option without deleting it (forms only render `is_active=1` rows). Sort order ties are broken by `label` ASC.
+
+Body shape for store / update:
+
+```
+category    = payment_method | __new__
+new_category = optional, only when category=__new__
+label       = human-readable
+value       = stored / submitted value (e.g. "transfer", "MYS", "06")
+sort_order  = integer
+is_active   = 1 | 0
+csrf_test_name = <token>
+```
+
+**Render-time helper** (`app/Helpers/format_helper.php`):
+
+```php
+$options = dropdown_options('payment_method'); // [['label'=>'Cash','value'=>'cash'], …]
+```
+
+The helper memoises results per-request, so calling it multiple times in the same view doesn't re-query.
 
 ## 10. Audit log — `module.audit_log.enabled`
 
@@ -359,6 +402,10 @@ The full schema is in `app/Database/Migrations/`. Migrations execute in this ord
 1. `2026-01-01-000001_InitialSchema` — `roles`, `permissions`, `role_permissions`, `users`, `membership_plans`, `members`, `invoices`, `payments`, `receipts`, `settings`, `audit_logs`, `notifications`, `member_documents`.
 2. `2026-04-30-000001_LhdnEinvoice` — adds `einvoice_documents`, LHDN columns on `members`/`membership_plans`/`invoices`/`settings`, widens `payments.status` enum to include `reversed`.
 3. `2026-04-30-000002_ModuleToggles` — backfills `module.*.enabled` settings on upgrade.
+4. `2026-05-01-000001_AddDropdownOptions` — creates the `dropdown_options` table that backs configurable selects (payment methods, states, countries, registration types, tax types).
+5. `2026-05-01-000002_DropdownAndPaymentFixes` — widens the `payments.method` ENUM with `online` (so the seeded "Online Payment" dropdown option is actually accepted) and adds a `UNIQUE(category, value)` constraint on `dropdown_options` so the seeder is idempotent across re-runs.
+
+`DatabaseSeeder` calls, in order: `RolePermissionSeeder`, `UserSeeder`, `PlanSeeder`, `SettingSeeder`, `DropdownOptionSeeder`. A fresh `db:seed DatabaseSeeder` produces 4 roles, 22 permissions, 4 users, 1 plan, 37+ settings, and 51 dropdown options.
 
 Run them in order:
 
