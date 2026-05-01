@@ -12,5 +12,6 @@ class DatabaseSeeder extends Seeder
         $this->call(UserSeeder::class);
         $this->call(PlanSeeder::class);
         $this->call(SettingSeeder::class);
+        $this->call(DropdownOptionSeeder::class);
     }
 }

@@ -491,13 +491,15 @@ php spark migrate:refresh && php spark db:seed DatabaseSeeder
 php spark serve --port 8080
 ```
 
-1. `POST /login` with `admin`/`Admin@123` → 303 to `/`.
-2. `POST /members/store` → member `MEM-0001` + invoice `INV-2026-0001` auto-created.
-3. `POST /payments/store` (no `invoice_id`) → payment recorded as `pending` and auto-matched to the invoice.
-4. `POST /payments/{id}/approve` → payment `confirmed`, receipt `RCPT-2026-0001` issued, PDF saved, invoice flipped to `paid`.
-5. `GET /invoices/{id}/pdf`, `GET /receipts/{id}/pdf`, `GET /reports/export/monthly` all return the expected file.
-6. `GET /settings` (Super Admin) → toggle **LHDN e-Invoice** off → confirm `/invoices/{id}/einvoice/submit` returns `404 — module disabled` and the LHDN card on `/invoices/{id}` disappears.
-7. RBAC: as `manager` user, `GET /users` and `GET /settings` return 403.
+1. `GET /` while not logged in → 302 to `/landing` → "Sign in" button → `/login`.
+2. `POST /login` with body `login=admin&password=Admin@123` → 303 to `/`.
+3. `POST /members/store` → member `MEM-0001` + invoice `INV-2026-0001` auto-created. Country / state / registration-type selects render entries from `dropdown_options`.
+4. `POST /payments/store` (no `invoice_id`) → payment recorded as `pending` and auto-matched to the invoice. Payment-method select pulls from `dropdown_options` (`category=payment_method`).
+5. `POST /payments/{id}/approve` → payment `confirmed`, receipt `RCPT-2026-0001` issued, PDF saved, invoice flipped to `paid`.
+6. `GET /invoices/{id}/pdf`, `GET /receipts/{id}/pdf`, `GET /reports/export/monthly` all return the expected file.
+7. `GET /settings` (Super Admin) → toggle **LHDN e-Invoice** off → confirm `/invoices/{id}/einvoice/submit` returns `404 — module disabled` and the LHDN card on `/invoices/{id}` disappears.
+8. `GET /settings/dropdown-options` (Super Admin) → add a row `category=payment_method`, `label=Test`, `value=test`, save → reload `/payments/create` → "Test" appears in the Payment method select.
+9. RBAC: as `manager` user, `GET /users` and `GET /settings` return 403.
 
 ---
 
