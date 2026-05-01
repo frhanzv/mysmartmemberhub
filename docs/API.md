@@ -403,6 +403,7 @@ The full schema is in `app/Database/Migrations/`. Migrations execute in this ord
 2. `2026-04-30-000001_LhdnEinvoice` — adds `einvoice_documents`, LHDN columns on `members`/`membership_plans`/`invoices`/`settings`, widens `payments.status` enum to include `reversed`.
 3. `2026-04-30-000002_ModuleToggles` — backfills `module.*.enabled` settings on upgrade.
 4. `2026-05-01-000001_AddDropdownOptions` — creates the `dropdown_options` table that backs configurable selects (payment methods, states, countries, registration types, tax types).
+5. `2026-05-01-000002_DropdownAndPaymentFixes` — widens the `payments.method` ENUM with `online` (so the seeded "Online Payment" dropdown option is actually accepted) and adds a `UNIQUE(category, value)` constraint on `dropdown_options` so the seeder is idempotent across re-runs.
 
 `DatabaseSeeder` calls, in order: `RolePermissionSeeder`, `UserSeeder`, `PlanSeeder`, `SettingSeeder`, `DropdownOptionSeeder`. A fresh `db:seed DatabaseSeeder` produces 4 roles, 22 permissions, 4 users, 1 plan, 37+ settings, and 51 dropdown options.
 
